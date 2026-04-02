@@ -1,6 +1,7 @@
 /*
  * template.hpp
  * Description: [DESCRIBE PURPOSE HERE]
+ * Note: .hpp files = Pure app-level C++ (no hardware concern)
  */
 
 #ifndef TEMPLATE_HPP

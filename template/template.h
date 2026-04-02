@@ -1,6 +1,11 @@
 /*
  * template.h
  * Description: [DESCRIBE PURPOSE HERE]
+ * Note: This header is designed to be compatible with both C and C++ code. 
+ *       It uses include guards to prevent multiple inclusions and extern "C" 
+ *       to allow C-style linkage when included in C++ code.
+ * 
+ *       .h files = System/HAL/driver layer (even if internal details are hidden)
  */
 
 #ifndef TEMPLATE_H
