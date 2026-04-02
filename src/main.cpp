@@ -2,18 +2,14 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 
-static const char *TAG = "espidf_baseline";
+static const char *MAIN = "MAIN_APP";
 
-int myFunction(int x, int y) {
-  return x + y;
-}
-
+// extern "C" is used to prevent name mangling when the function is called from C code
 extern "C" void app_main() {
-  int result = myFunction(2, 3);
-  ESP_LOGI(TAG, "myFunction(2,3) = %d", result);
+  ESP_LOGI(MAIN, "Starting application...");
 
   while (true) {
-    ESP_LOGI(TAG, "Hello, World!");
+    ESP_LOGI(MAIN, "Hello, World!");
     vTaskDelay(pdMS_TO_TICKS(1000));
   }
 }
