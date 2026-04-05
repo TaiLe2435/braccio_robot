@@ -1,22 +1,29 @@
 /*
  * servo.h
- * Description: HAL driver for controlling a servo motor
+ * Description: HAL driver for controlling servo motors via transistor level shifter
  */
 
 #ifndef SERVO_H
 #define SERVO_H
 
-#ifdef __cplusplus // if file is being compiled as C++
-extern "C" { // enable C-style linkage
-#endif // prevents name mangling when included in C code
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/* -- Includes (STL, ESP-IDF, project) -------------------------------------- */
+/* -- Includes -------------------------------------------------------------- */
+#include "driver/ledc.h"
+#include "driver/gpio.h"
 
+/* -- Constants ------------------------------------------------------------- */
+// Single servo test configuration
+#define SERVO_PIN GPIO_NUM_25
+#define LEDC_CHANNEL LEDC_CHANNEL_0
+#define LEDC_TIMER LEDC_TIMER_0
 
-/* -- Constants ----------------------------------------------------- */
+// Signal inversion for NPN transistor level shifter
+#define USE_INVERTED_SIGNAL 1
 
-
-/* -- Type definitions (structs, typedefs) ---------------------------------- */
+/* -- Type definitions ------------------------------------------------------ */
 typedef enum 
 {
     SERVO_1 = 1,
@@ -24,48 +31,22 @@ typedef enum
     SERVO_3,
     SERVO_4,
     SERVO_5,
+    SERVO_6,
     NUM_SERVOS
 } ServoNumber_t;
 
+/* -- Function prototypes --------------------------------------------------- */
+void servo_init(void);
+void servo_set_angle(float angle);
 
-/* -- Forward declarations (function prototypes) ---------------------------- */
-
-
-/* -- Class declaration (C++ only) ------------------------------------------ */
-
-#ifdef __cplusplus // if compiling as C++, include class definitions
-class Servo { // c compiler preprocessor will ignore this entire block
+/* -- C++ Class ------------------------------------------------------------- */
+#ifdef __cplusplus
+class Servo {
 public:
-    GpioPin_t GpioPin;
-
-    /* -- Public Constructors / Destructors --------------------------------- */
     Servo();
-
     ~Servo();
-
-    /* -- Public initialization methods ------------------------------------- */
-
-
-    /* -- Public control/action methods ------------------------------------- */
-
-
-    /* -- Public getters ---------------------------------------------------- */
-
-
-    /* -- Public setters ---------------------------------------------------- */
-
-
-private:
-    /* -- Private member variables ------------------------------------------ */
-
-
-    /* -- Private helper methods -------------------------------------------- */
-
 };
-#endif  /* __cplusplus */
-
-/* -- C-compatible functions (extern "C" if needed) ------------------------- */
-
+#endif
 
 #ifdef __cplusplus
 }
