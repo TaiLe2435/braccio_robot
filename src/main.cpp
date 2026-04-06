@@ -11,47 +11,56 @@
 
 static const char *TAG = "MAIN";
 
+static ServoDriver_t J3 = 
+{
+    .ServoNumber = SERVO_3,
+    .Pin = J3_PIN,
+    .Channel = J3_LEDC_CHANNEL,
+    .Timer = J3_LEDC_TIMER
+};
+
 extern "C" void app_main(void) {
     ESP_LOGI(TAG, "===========================================");
     ESP_LOGI(TAG, "  Braccio Robot Servo Test - ESP32");
     ESP_LOGI(TAG, "===========================================");
     
     // Initialize servo system
-    servo_init();
+    Servo J3(J3);
+    J3.Init();
     
     // Wait for system to stabilize
     vTaskDelay(pdMS_TO_TICKS(500));
     
     // Move to safe home position (90° = middle)
     ESP_LOGI(TAG, "Moving to home position (90°)...");
-    servo_set_angle(90);
+    J3.SetAngle(90);
     vTaskDelay(pdMS_TO_TICKS(2000));
     
     ESP_LOGI(TAG, "Starting test sequence...\n");
     
     // Test 1: Move to extremes
     ESP_LOGI(TAG, "TEST 1: Moving to 0°");
-    servo_set_angle(0);
+    J3.SetAngle(0);
     vTaskDelay(pdMS_TO_TICKS(2000));
     
     ESP_LOGI(TAG, "TEST 1: Moving to 180°");
-    servo_set_angle(180);
+    J3.SetAngle(180);
     vTaskDelay(pdMS_TO_TICKS(2000));
     
     ESP_LOGI(TAG, "TEST 1: Moving back to 90°");
-    servo_set_angle(90);
+    J3.SetAngle(90);
     vTaskDelay(pdMS_TO_TICKS(2000));
     
     // Test 2: Smooth sweep
     ESP_LOGI(TAG, "\nTEST 2: Starting smooth sweep (0° -> 180°)");
     for (int angle = 0; angle <= 180; angle += 10) {
-        servo_set_angle(angle);
+        J3.SetAngle(angle);
         vTaskDelay(pdMS_TO_TICKS(500));  // 500ms per step
     }
     
     ESP_LOGI(TAG, "TEST 2: Reverse sweep (180° -> 0°)");
     for (int angle = 180; angle >= 0; angle -= 10) {
-        servo_set_angle(angle);
+        J3.SetAngle(angle);
         vTaskDelay(pdMS_TO_TICKS(500));
     }
     
@@ -65,13 +74,13 @@ extern "C" void app_main(void) {
         
         // Sweep forward
         for (int angle = 0; angle <= 180; angle += 15) {
-            servo_set_angle(angle);
+            J3.SetAngle(angle);
             vTaskDelay(pdMS_TO_TICKS(300));
         }
         
         // Sweep backward
         for (int angle = 180; angle >= 0; angle -= 15) {
-            servo_set_angle(angle);
+            J3.SetAngle(angle);
             vTaskDelay(pdMS_TO_TICKS(300));
         }
         

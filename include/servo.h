@@ -39,7 +39,7 @@ extern "C" {
 // J5 servo pin and LEDC configuration
 #define J5_PIN GPIO_NUM_32
 #define J5_LEDC_CHANNEL LEDC_CHANNEL_4
-#define J5_LEDC_TIMER LEDC_TIMER_4
+#define J5_LEDC_TIMER LEDC_TIMER_0 // this might cause conflicts, but we only have 4 timers so we have to reuse
 
 // Signal inversion for NPN transistor level shifter
 #define USE_INVERTED_SIGNAL 1
@@ -66,17 +66,17 @@ typedef struct
 typedef StatusCode_t ServoStatus_t;
 
 /* -- Function prototypes --------------------------------------------------- */
-ServoStatus_t servo_init(void);
-ServoStatus_t servo_set_angle(float angle);
 
 /* -- C++ Class ------------------------------------------------------------- */
 #ifdef __cplusplus
 class Servo {
 public:
-    Servo();
+    ServoDriver_t ServoDriver;  // Driver configuration for this servo
+
+    Servo(ServoDriver_t driver);
     ~Servo();
 
-    ServoStatus_t SetDriver(void *PeripheralDriver);
+    ServoStatus_t Init();
     ServoStatus_t Enable();
     ServoStatus_t Disable();
     ServoStatus_t EnableAll();

@@ -23,29 +23,37 @@ static const char *TAG = "SERVO";
 #define PULSE_PERIOD_MS     20.0f   // 50Hz = 20ms period
 
 /* -- Constructor / Destructor ---------------------------------------------- */
-Servo::Servo() {
+Servo::Servo(ServoDriver_t driver) 
+{
+
     // Constructor
+    // TODO: There is a better way to do this, but for now leave it as is
+    // Also need to validate inputs
+    this->ServoDriver = driver;
 }
 
-Servo::~Servo() {
+Servo::~Servo() 
+{
     // Destructor
 }
 
-/* -- Initialization -------------------------------------------------------- */
-ServoStatus_t servo_init(void) {
-    ESP_LOGI(TAG, "Initializing servo on GPIO %d", J1_PIN);
+ServoStatus_t Servo::Init() 
+{
+    // TODO: use ReturnValue error code
+    ServoStatus_t ReturnValue = STATUS_OK;
+    ESP_LOGI(TAG, "Initializing servo on GPIO %d", this->ServoDriver.Pin);
     ESP_LOGI(TAG, "Using inverted signal: %s", USE_INVERTED_SIGNAL ? "YES" : "NO");
-    
+        
     // Step 1: Configure GPIO with pull-down before LEDC takes over
     gpio_config_t io_conf = {
-        .pin_bit_mask = (1ULL << J1_PIN),
+        .pin_bit_mask = (1ULL << this->ServoDriver.Pin),
         .mode = GPIO_MODE_OUTPUT,
         .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_ENABLE,  // Keeps transistor OFF on boot
         .intr_type = GPIO_INTR_DISABLE,
     };
     ESP_ERROR_CHECK(gpio_config(&io_conf));
-    ESP_ERROR_CHECK(gpio_set_level(J1_PIN, 0));  // Explicitly set LOW
+    ESP_ERROR_CHECK(gpio_set_level(this->ServoDriver.Pin, 0));  // Explicitly set LOW
     
     ESP_LOGI(TAG, "GPIO configured with pull-down");
     
@@ -56,7 +64,7 @@ ServoStatus_t servo_init(void) {
     ledc_timer_config_t timer_conf = {
         .speed_mode = LEDC_LOW_SPEED_MODE,
         .duty_resolution = (ledc_timer_bit_t)SERVO_RESOLUTION,
-        .timer_num = J1_LEDC_TIMER,
+        .timer_num = this->ServoDriver.Timer,
         .freq_hz = SERVO_FREQ_HZ,
         .clk_cfg = LEDC_AUTO_CLK,
     };
@@ -67,22 +75,25 @@ ServoStatus_t servo_init(void) {
     
     // Step 3: Configure LEDC channel
     ledc_channel_config_t ch_conf = {
-        .gpio_num = J1_PIN,
+        .gpio_num = this->ServoDriver.Pin,
         .speed_mode = LEDC_LOW_SPEED_MODE,
-        .channel = J1_LEDC_CHANNEL,
+        .channel = this->ServoDriver.Channel,
         .intr_type = LEDC_INTR_DISABLE,
-        .timer_sel = J1_LEDC_TIMER,
+        .timer_sel = this->ServoDriver.Timer,
         .duty = 0,  // Start with 0 duty (transistor OFF, signal at 5V)
         .hpoint = 0,
     };
     ESP_ERROR_CHECK(ledc_channel_config(&ch_conf));
     
+    ESP_LOGI(TAG, "LEDC channel configured successfully");ESP_LOGI(TAG, "Initializing servo on GPIO %d", J1_PIN);
+    ESP_LOGI(TAG, "Using inverted signal: %s", USE_INVERTED_SIGNAL ? "YES" : "NO");
     ESP_LOGI(TAG, "LEDC channel configured successfully");
-    return STATUS_OK;
+
+    return ReturnValue;
 }
 
 /* -- Control Methods ------------------------------------------------------- */
-ServoStatus_t servo_set_angle(float angle) {
+ServoStatus_t Servo::SetAngle(float angle) {
     // Clamp angle to valid range
     if (angle < 0.0f) {
         ESP_LOGW(TAG, "Angle %.1f° clamped to 0°", angle);
@@ -117,7 +128,7 @@ ServoStatus_t servo_set_angle(float angle) {
 #endif
     
     // Set duty cycle
-    ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, J1_LEDC_CHANNEL, final_duty));
-    ESP_ERROR_CHECK(ledc_update_duty(LEDC_LOW_SPEED_MODE, J1_LEDC_CHANNEL));
+    ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, this->ServoDriver.Channel, final_duty));
+    ESP_ERROR_CHECK(ledc_update_duty(LEDC_LOW_SPEED_MODE, this->ServoDriver.Channel));
     return STATUS_OK;
 }
