@@ -13,12 +13,33 @@ extern "C" {
 /* -- Includes -------------------------------------------------------------- */
 #include "driver/ledc.h"
 #include "driver/gpio.h"
+#include "error_codes.h"
 
 /* -- Constants ------------------------------------------------------------- */
-// Single servo test configuration
-#define SERVO_PIN GPIO_NUM_25
-#define LEDC_CHANNEL LEDC_CHANNEL_0
-#define LEDC_TIMER LEDC_TIMER_0
+// J1 servo pin and LEDC configuration
+#define J1_PIN GPIO_NUM_27
+#define J1_LEDC_CHANNEL LEDC_CHANNEL_0
+#define J1_LEDC_TIMER LEDC_TIMER_0
+
+// J2 servo pin and LEDC configuration
+#define J2_PIN GPIO_NUM_26
+#define J2_LEDC_CHANNEL LEDC_CHANNEL_1
+#define J2_LEDC_TIMER LEDC_TIMER_1
+
+// J3 servo pin and LEDC configuration
+#define J3_PIN GPIO_NUM_25
+#define J3_LEDC_CHANNEL LEDC_CHANNEL_2
+#define J3_LEDC_TIMER LEDC_TIMER_2
+
+// J4 servo pin and LEDC configuration
+#define J4_PIN GPIO_NUM_33
+#define J4_LEDC_CHANNEL LEDC_CHANNEL_3
+#define J4_LEDC_TIMER LEDC_TIMER_3
+
+// J5 servo pin and LEDC configuration
+#define J5_PIN GPIO_NUM_32
+#define J5_LEDC_CHANNEL LEDC_CHANNEL_4
+#define J5_LEDC_TIMER LEDC_TIMER_4
 
 // Signal inversion for NPN transistor level shifter
 #define USE_INVERTED_SIGNAL 1
@@ -31,13 +52,22 @@ typedef enum
     SERVO_3,
     SERVO_4,
     SERVO_5,
-    SERVO_6,
     NUM_SERVOS
 } ServoNumber_t;
 
+typedef struct 
+{
+    ServoNumber_t ServoNumber;
+    gpio_num_t Pin;
+    ledc_channel_t Channel;
+    ledc_timer_t Timer;
+} ServoDriver_t;
+
+typedef StatusCode_t ServoStatus_t;
+
 /* -- Function prototypes --------------------------------------------------- */
-void servo_init(void);
-void servo_set_angle(float angle);
+ServoStatus_t servo_init(void);
+ServoStatus_t servo_set_angle(float angle);
 
 /* -- C++ Class ------------------------------------------------------------- */
 #ifdef __cplusplus
@@ -45,6 +75,13 @@ class Servo {
 public:
     Servo();
     ~Servo();
+
+    ServoStatus_t SetDriver(void *PeripheralDriver);
+    ServoStatus_t Enable();
+    ServoStatus_t Disable();
+    ServoStatus_t EnableAll();
+    ServoStatus_t DisableAll();
+    ServoStatus_t SetAngle(float angle);
 };
 #endif
 
