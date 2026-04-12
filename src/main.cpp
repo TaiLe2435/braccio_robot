@@ -11,7 +11,7 @@
 
 static const char *TAG = "MAIN";
 
-static ServoDriver_t Servo_J1 = 
+static ServoDriver_t ServoDriver_J1 = 
 {
     .ServoNumber = SERVO_1,
     .Pin = J1_PIN,
@@ -25,7 +25,7 @@ extern "C" void app_main(void) {
     ESP_LOGI(TAG, "===========================================");
     
     // Initialize servo system
-    Servo J1(Servo_J1);
+    Servo J1(ServoDriver_J1);
     J1.Init();
     
     // Wait for system to stabilize
