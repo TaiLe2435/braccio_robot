@@ -9,6 +9,7 @@
 
 /* -- Includes (STL, ESP-IDF, project) -------------------------------------- */
 #include <cstddef>
+#include <array>
 #include "error_codes.h"
 
 /* -- Enums / Constants ----------------------------------------------------- */
@@ -20,30 +21,28 @@ enum class RobotState {
     DISABLED
 };
 
+#define NUM_JOINTS 5 // override later if needed
+
 /* -- Type definitions (structs, typedefs) ---------------------------------- */
 typedef struct
 {
-    float x;
-    float y;
-    float z;
-    float roll;
-    float pitch;
-    float yaw;
+    float x, y, z;
+    float roll, pitch, yaw;
 } Pose_t;
-
-typedef struct {
-    float* positions;
-    size_t size;
-} JointState_t;
 
 typedef StatusCode_t RobotStatus_t;
 /* -- Forward declarations (function prototypes) ---------------------------- */
 
 
 /* -- Class declaration ----------------------------------------------------- */
-
+template <size_t DOF>
 class Robot {
 public:
+    typedef struct
+    {
+        std::array<float, DOF> positions_;
+    } JointState_t;
+
     /* -- Public Constructors / Destructors --------------------------------- */
     Robot() = default; 
     virtual ~Robot() = default;
