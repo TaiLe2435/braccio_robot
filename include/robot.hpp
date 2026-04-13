@@ -51,10 +51,9 @@ public:
     virtual RobotStatus_t Init() = 0;
     virtual RobotStatus_t Enable() = 0;
     virtual RobotStatus_t Disable() = 0;
+
     virtual RobotStatus_t Stop() = 0;
-
     virtual RobotStatus_t Home() = 0;
-
     virtual RobotStatus_t GotoPose(const Pose_t& target_pose) = 0;
     virtual RobotStatus_t GotoJointPositions(const JointState_t& target_joints) = 0;
 
