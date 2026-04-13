@@ -8,83 +8,148 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 #include "servo.h"
+#include "braccio.hpp"
 
 static const char *TAG = "MAIN";
 
-static ServoDriver_t ServoDriver_J1 = 
+static void MoveShoulderSweep(Braccio& braccio,
+                              const Braccio::JointState_t& base,
+                              float start_deg,
+                              float end_deg,
+                              float step_deg,
+                              int delay_ms)
 {
-    .ServoNumber = SERVO_1,
-    .Pin = J1_PIN,
-    .Channel = J1_LEDC_CHANNEL,
-    .Timer = J1_LEDC_TIMER
-};
+    Braccio::JointState_t cmd = base;
 
-extern "C" void app_main(void) {
-    ESP_LOGI(TAG, "===========================================");
-    ESP_LOGI(TAG, "  Braccio Robot Servo Test - ESP32");
-    ESP_LOGI(TAG, "===========================================");
-    
-    // Initialize servo system
-    Servo J1(ServoDriver_J1);
-    J1.Init();
-    
-    // Wait for system to stabilize
-    vTaskDelay(pdMS_TO_TICKS(500));
-    
-    // Move to safe home position (90° = middle)
-    ESP_LOGI(TAG, "Moving to home position (90°)...");
-    J1.SetAngle(90);
-    vTaskDelay(pdMS_TO_TICKS(2000));
-    
-    ESP_LOGI(TAG, "Starting test sequence...\n");
-    
-    // Test 1: Move to extremes
-    ESP_LOGI(TAG, "TEST 1: Moving to 0°");
-    J1.SetAngle(0);
-    vTaskDelay(pdMS_TO_TICKS(2000));
-    
-    ESP_LOGI(TAG, "TEST 1: Moving to 180°");
-    J1.SetAngle(180);
-    vTaskDelay(pdMS_TO_TICKS(2000));
-    
-    ESP_LOGI(TAG, "TEST 1: Moving back to 90°");
-    J1.SetAngle(90);
-    vTaskDelay(pdMS_TO_TICKS(2000));
-    
-    // Test 2: Smooth sweep
-    ESP_LOGI(TAG, "\nTEST 2: Starting smooth sweep (0° -> 180°)");
-    for (int angle = 0; angle <= 180; angle += 10) {
-        J1.SetAngle(angle);
-        vTaskDelay(pdMS_TO_TICKS(500));  // 500ms per step
-    }
-    
-    ESP_LOGI(TAG, "TEST 2: Reverse sweep (180° -> 0°)");
-    for (int angle = 180; angle >= 0; angle -= 10) {
-        J1.SetAngle(angle);
-        vTaskDelay(pdMS_TO_TICKS(500));
-    }
-    
-    // Test 3: Continuous operation
-    ESP_LOGI(TAG, "\nTEST 3: Continuous sweep loop");
-    int sweep_count = 0;
-    
-    while (1) {
-        sweep_count++;
-        ESP_LOGI(TAG, "Sweep cycle #%d", sweep_count);
-        
-        // Sweep forward
-        for (int angle = 0; angle <= 180; angle += 15) {
-            J1.SetAngle(angle);
-            vTaskDelay(pdMS_TO_TICKS(300));
+    if (start_deg < end_deg)
+    {
+        for (float a = start_deg; a <= end_deg; a += step_deg)
+        {
+            cmd.positions_[1] = a;  // shoulder joint
+            braccio.GotoJointPositions(cmd);
+            vTaskDelay(pdMS_TO_TICKS(delay_ms));
         }
-        
-        // Sweep backward
-        for (int angle = 180; angle >= 0; angle -= 15) {
-            J1.SetAngle(angle);
-            vTaskDelay(pdMS_TO_TICKS(300));
+    }
+    else
+    {
+        for (float a = start_deg; a >= end_deg; a -= step_deg)
+        {
+            cmd.positions_[1] = a;
+            braccio.GotoJointPositions(cmd);
+            vTaskDelay(pdMS_TO_TICKS(delay_ms));
         }
-        
-        // Pause between cycles
-        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
+static void SmoothMoveAll(Braccio& braccio,
+                         const Braccio::JointState_t& start,
+                         const Braccio::JointState_t& target,
+                         int steps,
+                         int delay_ms)
+{
+    Braccio::JointState_t cmd = start;
+
+    for (int s = 0; s < steps; s++)
+    {
+        for (size_t i = 0; i < cmd.positions_.size(); i++)
+        {
+            float error = target.positions_[i] - cmd.positions_[i];
+            float step = error * 0.1f;   // smoothing factor
+
+            // clamp step size (velocity limit)
+            if (step > 2.0f) step = 2.0f;
+            if (step < -2.0f) step = -2.0f;
+
+            cmd.positions_[i] += step;
+        }
+
+        braccio.GotoJointPositions(cmd);
+        vTaskDelay(pdMS_TO_TICKS(delay_ms));
+    }
+}
+
+// extern "C" void app_main(void) {
+//     ESP_LOGI(TAG, "===========================================");
+//     ESP_LOGI(TAG, "  Braccio Robot Servo Test - ESP32");
+//     ESP_LOGI(TAG, "===========================================");
+    
+//     Braccio braccio;
+//     braccio.Init();
+
+//     // Test some joint angles
+//     Braccio::JointState_t base = 
+//     {
+//         .positions_ = {90.0f, 45.0f, 180.0f, 180.0f, 90.0f}
+//     };
+
+//     ESP_LOGI(TAG, "Moving to base pose...");
+//     braccio.GotoJointPositions(base);
+//     vTaskDelay(pdMS_TO_TICKS(3000));
+
+//     while (true)
+//     {
+//         ESP_LOGI(TAG, "Sweeping shoulder joint...");
+
+//         MoveShoulderSweep(
+//             braccio,
+//             base,
+//             15.0f,     // start angle
+//             165.0f,    // end angle
+//             1.0f,      // step size
+//             20         // ms delay (controls smoothness)
+//         );
+
+//         vTaskDelay(pdMS_TO_TICKS(2000));
+
+//         ESP_LOGI(TAG, "Sweeping back...");
+
+//         MoveShoulderSweep(
+//             braccio,
+//             base,
+//             165.0f,
+//             15.0f,
+//             1.0f,
+//             20
+//         );
+
+//         vTaskDelay(pdMS_TO_TICKS(2000));
+//     }
+
+// }
+
+extern "C" void app_main(void)
+{
+    Braccio braccio;
+    braccio.Init();
+
+    Braccio::JointState_t home =
+    {
+        .positions_ = {90.0f, 45.0f, 180.0f, 180.0f, 0.0f}
+    };
+
+    Braccio::JointState_t extended =
+    {
+        .positions_ = {90.0f, 45.0f, 180.0f, 180.0f, 180.0f}
+    };
+
+    // Braccio::JointState_t extended =
+    // {
+    //     .positions_ = {180.0f, 165.0f, 180.0f, 180.0f, 180.0f}
+    // };
+
+    braccio.GotoJointPositions(home);
+    vTaskDelay(pdMS_TO_TICKS(2000));
+
+    while (true)
+    {
+        ESP_LOGI(TAG, "Smooth move → extended");
+        SmoothMoveAll(braccio, home, extended, 100, 20);
+
+        vTaskDelay(pdMS_TO_TICKS(2000));
+
+        ESP_LOGI(TAG, "Smooth move → home");
+        SmoothMoveAll(braccio, extended, home, 100, 20);
+
+        vTaskDelay(pdMS_TO_TICKS(2000));
     }
 }

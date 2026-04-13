@@ -52,7 +52,7 @@ typedef enum
     SERVO_3,
     SERVO_4,
     SERVO_5,
-    NUM_SERVOS
+    MAX_NUM_SERVOS
 } ServoNumber_t;
 
 typedef struct 

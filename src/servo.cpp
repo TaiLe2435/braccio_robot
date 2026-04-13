@@ -18,8 +18,8 @@ static const char *TAG = "SERVO";
 #define SERVO_MAX_DUTY      8192    // 2^13
 
 // Servo timing (adjust these if needed for your specific servos)
-#define PULSE_MIN_MS        1.0f    // 0° position
-#define PULSE_MAX_MS        2.0f    // 180° position
+#define PULSE_MIN_MS        0.5f    // 0° position
+#define PULSE_MAX_MS        2.5f    // 180° position
 #define PULSE_PERIOD_MS     20.0f   // 50Hz = 20ms period
 
 /* -- Constructor / Destructor ---------------------------------------------- */
