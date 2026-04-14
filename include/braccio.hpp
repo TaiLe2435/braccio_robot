@@ -41,6 +41,10 @@ typedef struct
 class Braccio : public Robot<5> {
 public:
     using JointState_t = typename Robot<5>::JointState_t;
+    const JointState_t HOME = 
+    {
+        .positions_ = {90.0f, 45.0f, 180.0f, 180.0f, 90.0f}
+    };
 
     /* -- Public Constructors / Destructors --------------------------------- */
     Braccio();
