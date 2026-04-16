@@ -127,15 +127,15 @@ extern "C" void app_main(void)
         .positions_ = {90.0f, 45.0f, 180.0f, 180.0f, 90.0f}
     };
 
-    Braccio::JointState_t extended =
-    {
-        .positions_ = {90.0f, 45.0f, 180.0f, 180.0f, 90.0f}
-    };
-
     // Braccio::JointState_t extended =
     // {
-    //     .positions_ = {180.0f, 165.0f, 180.0f, 180.0f, 180.0f}
+    //     .positions_ = {90.0f, 45.0f, 180.0f, 180.0f, 90.0f}
     // };
+
+    Braccio::JointState_t extended =
+    {
+        .positions_ = {180.0f, 165.0f, 180.0f, 180.0f, 180.0f}
+    };
 
     braccio.GotoJointPositions(home);
     vTaskDelay(pdMS_TO_TICKS(2000));
